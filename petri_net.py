@@ -13,6 +13,9 @@ References:
  * https://www.amazon.com/Understanding-Petri-Nets-Modeling-Techniques/dp/3642332773
 """
 
+import json
+
+
 class Place:
     def __init__(self, holding):
         """
@@ -116,28 +119,40 @@ def make_parser():
     parser = ArgumentParser()
     parser.add_argument('--firings', type=int)
     parser.add_argument('--marking', type=int, nargs='+')
+    parser.add_argument('--Net', type=str)
     return parser
 
-
+def fromjson(data,ps):
+    res = {}
+    transitions = data["transitions"]
+    print(transitions)
+    states = {state : idx for idx, state in enumerate(data["states"])}
+    for transition in transitions:
+        creations = [In(ps[states[i]]) for i in transitions[transition]["create"]]
+        consumptions = [Out(ps[states[i]]) for i in transitions[transition]["consume"]]
+        
+        res [transition] = Transition(consumptions,creations)
+    return res
 if __name__ == "__main__":    
     args = make_parser().parse_args()
 
     ps = [Place(m) for m in args.marking]
-    ts = dict(
-        t1=Transition(
-            [Out(ps[0])], 
-            [In(ps[1]), In(ps[2])]
-            ),
-        t2=Transition(
-            [Out(ps[1]), Out(ps[2])], 
-            [In(ps[3]), In(ps[0])]
-            ),
-        )
-        
+    # ts = dict(
+    #     t1=Transition(
+    #         [Out(ps[0])], 
+    #         [In(ps[1]), In(ps[2])]
+    #         ),
+    #     t2=Transition(
+    #         [Out(ps[1]), Out(ps[2])], 
+    #         [In(ps[3]), In(ps[0])]
+    #         ),
+    #     )
+    ts = fromjson(json.load(open(args.json,'r')),ps)
+    print(ts)
     from random import choice
     firing_sequence = [choice(list(ts.keys())) for _ in range(args.firings)] # stochastic execution
     
-    #firing_sequence = ["t1", "t1", "t2", "t1"] # alternative deterministic example
+    # firing_sequence = ["t1", "t2", "t2", "t1", "t2", "t1"] # alternative deterministic example
 
     petri_net = PetriNet(ts)
     petri_net.run(firing_sequence, ps)

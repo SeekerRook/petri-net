@@ -1,0 +1,29 @@
+{
+    "states": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+    ],
+   "transitions": {
+        "t1": {
+            "create": [
+                "P2",
+                "P3"
+            ],
+            "consume": [
+                "P1"
+            ]
+        },
+        "t2": {
+            "create": [
+                "P4",
+                "P1"
+            ],
+            "consume": [
+                "P2",
+                "P3"
+            ]
+        }
+    }
+}
